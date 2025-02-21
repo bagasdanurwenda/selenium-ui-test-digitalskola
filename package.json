@@ -11,7 +11,19 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "chromedriver": "^133.0.2",
+    "chromedriver": "^133.0.2"
+  },
+  "devDependencies": {
+    "chai": "^5.2.0",
+    "mocha": "^11.1.0",
     "selenium-webdriver": "^4.29.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bagasdanurwenda/selenium-ui-test-digitalskola.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bagasdanurwenda/selenium-ui-test-digitalskola/issues"
+  },
+  "homepage": "https://github.com/bagasdanurwenda/selenium-ui-test-digitalskola#readme"
 }

@@ -1,41 +1,27 @@
 const { Builder, By, Key, until } = require("selenium-webdriver");
+const { expect } = require("chai");
+const { getDriver } = require("./config");
 
-async function runTest() {
-  // Setup browser
-  let driver = await new Builder().forBrowser("chrome").build();
+describe("SauceDemo UI Tests", function () {
+    let driver;
+    const browser = process.env.BROWSER || "chrome";
+    const headless = process.env.HEADLESS === "true";
 
-  try {
-    // 1. User success login
-    await driver.get("https://www.saucedemo.com/");
-    await driver.findElement(By.id("user-name")).sendKeys("standard_user");
-    await driver.findElement(By.id("password")).sendKeys("secret_sauce", Key.RETURN);
+    before(async function () {
+        driver = await getDriver(browser, headless);
+    });
 
-    // 2. Validate user berada di dashboard setelah login
-    await driver.wait(until.elementLocated(By.className("title")), 5000);
-    let pageTitle = await driver.findElement(By.className("title")).getText();
-    console.log("Page Title:", pageTitle);
-    if (pageTitle !== "Products") {
-      throw new Error("Login gagal atau dashboard tidak tampil.");
-    }
+    after(async function () {
+        await driver.quit();
+    });
 
-    // 3. Add item to cart
-    await driver.findElement(By.css(".inventory_item button")).click();
+    it("1. User success login", async function () {
+        await driver.get("https://www.saucedemo.com/");
+        await driver.findElement(By.id("user-name")).sendKeys("standard_user");
+        await driver.findElement(By.id("password")).sendKeys("secret_sauce", Key.RETURN);
 
-    // 4. Validate item sukses ditambahkan ke cart
-    let cartBadge = await driver.findElement(By.className("shopping_cart_badge")).getText();
-    console.log("Cart Count:", cartBadge);
-    if (cartBadge !== "1") {
-      throw new Error("Item tidak berhasil ditambahkan ke cart.");
-    }
-
-    console.log("Test berhasil!");
-  } catch (error) {
-    console.error("Test gagal:", error);
-  } finally {
-    // Tutup browser
-    await driver.quit();
-  }
-}
-
-// Jalankan test
-runTest();
+        await driver.wait(until.elementLocated(By.className("title")), 5000);
+        const titleText = await driver.findElement(By.className("title")).getText();
+        expect(titleText).to.equal("Products");
+    });
+});
