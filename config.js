@@ -1,23 +1,29 @@
 const { Builder } = require("selenium-webdriver");
-const chrome = require("selenium-webdriver/chrome");
-const firefox = require("selenium-webdriver/firefox");
 
 async function getDriver(browser = "chrome", headless = false) {
-    let driver;
+    console.log(`Starting WebDriver for: ${browser}, Headless: ${headless}`); // Debugging log
 
+    let options;
     if (browser === "chrome") {
-        let options = new chrome.Options();
+        const { Options } = require("selenium-webdriver/chrome");
+        options = new Options();
         if (headless) options.headless();
-        driver = await new Builder().forBrowser("chrome").setChromeOptions(options).build();
     } else if (browser === "firefox") {
-        let options = new firefox.Options();
+        const { Options } = require("selenium-webdriver/firefox");
+        options = new Options();
         if (headless) options.headless();
-        driver = await new Builder().forBrowser("firefox").setFirefoxOptions(options).build();
     } else {
-        throw new Error("Browser not supported!");
+        throw new Error("Unsupported browser: " + browser);
     }
 
-    return driver;
+    try {
+        const driver = await new Builder().forBrowser(browser).setChromeOptions(options).build();
+        console.log("WebDriver started successfully!");
+        return driver;
+    } catch (error) {
+        console.error("Error starting WebDriver:", error);
+        throw error;
+    }
 }
 
 module.exports = { getDriver };
