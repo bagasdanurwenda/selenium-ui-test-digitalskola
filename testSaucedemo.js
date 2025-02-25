@@ -1,41 +1,35 @@
-const { Builder, By, Key, until } = require("selenium-webdriver");
+const { Builder } = require("selenium-webdriver");
+const LoginPage = require("../pages/LoginPage");
+const ProductPage = require("../pages/ProductPage");
+const CheckoutPage = require("../pages/CheckoutPage");
+const { expect } = require("chai");
 
-async function runTest() {
-  // Setup browser
-  let driver = await new Builder().forBrowser("chrome").build();
+describe("Checkout Flow Test", function () {
+    let driver, loginPage, productPage, checkoutPage;
 
-  try {
-    // 1. User success login
-    await driver.get("https://www.saucedemo.com/");
-    await driver.findElement(By.id("user-name")).sendKeys("standard_user");
-    await driver.findElement(By.id("password")).sendKeys("secret_sauce", Key.RETURN);
+    before(async function () {
+        driver = await new Builder().forBrowser("chrome").build();
+        loginPage = new LoginPage(driver);
+        productPage = new ProductPage(driver);
+        checkoutPage = new CheckoutPage(driver);
+        await loginPage.open();
+    });
 
-    // 2. Validate user berada di dashboard setelah login
-    await driver.wait(until.elementLocated(By.className("title")), 5000);
-    let pageTitle = await driver.findElement(By.className("title")).getText();
-    console.log("Page Title:", pageTitle);
-    if (pageTitle !== "Products") {
-      throw new Error("Login gagal atau dashboard tidak tampil.");
-    }
+    after(async function () {
+        await driver.quit();
+    });
 
-    // 3. Add item to cart
-    await driver.findElement(By.css(".inventory_item button")).click();
+    it("User can log in, add item, and checkout", async function () {
+        await loginPage.login("standard_user", "secret_sauce");
+        await productPage.addItemToCart();
+        expect(await productPage.getCartItemCount()).to.equal("1");
 
-    // 4. Validate item sukses ditambahkan ke cart
-    let cartBadge = await driver.findElement(By.className("shopping_cart_badge")).getText();
-    console.log("Cart Count:", cartBadge);
-    if (cartBadge !== "1") {
-      throw new Error("Item tidak berhasil ditambahkan ke cart.");
-    }
+        await productPage.goToCart();
+        await checkoutPage.startCheckout();
+        await checkoutPage.enterShippingDetails("John", "Doe", "12345");
+        await checkoutPage.completeCheckout();
 
-    console.log("Test berhasil!");
-  } catch (error) {
-    console.error("Test gagal:", error);
-  } finally {
-    // Tutup browser
-    await driver.quit();
-  }
-}
-
-// Jalankan test
-runTest();
+        const successMessage = await checkoutPage.getSuccessMessage();
+        expect(successMessage).to.equal("Thank you for your order!");
+    });
+});
